@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>logcat_monitor</RootNamespace>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <StartupObject>logcat_monitor.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="workers\" />
+    <None Remove="services\internals\" />
+    <None Remove="NetCoreServer" />
+    <None Remove="services\internals\events\" />
+    <None Remove="extenstions\" />
+    <None Remove="Newtonsoft.Json" />
+    <None Remove="helpers\" />
+    <None Remove="helpers\process\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="services\" />
+    <Folder Include="services\internals\" />
+    <Folder Include="services\internals\events\" />
+    <Folder Include="helpers\" />
+    <Folder Include="helpers\process\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
+    <PackageReference Include="NetCoreServer" Version="3.0.22" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Lint B/E Dockerfile
+        run:  docker run --rm -i hadolint/hadolint < backend/Dockerfile
+      - name: Build B/E image
+        run: docker build backend/ --file backend/Dockerfile --tag logcat_monitor_backend:$(date +%s)
