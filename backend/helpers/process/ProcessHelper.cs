@@ -20,7 +20,6 @@ namespace logcat_monitor.helpers
         private void RunCommand(string cmd, string args, CancellationToken stoppingToken, Action<string> cb = null, bool waitForExit = false)
         {
             var process = new Process();
-            var sb = new StringBuilder();
 
             process.StartInfo.FileName = cmd;
             process.StartInfo.Arguments = args;
@@ -32,15 +31,16 @@ namespace logcat_monitor.helpers
 
             var started = process.Start();
 
-            Action killSwitch = delegate ()
+            void killSwitch()
             {
-                _logger.LogWarning($"KillSwitch on: {cmd} {args}");
+                _logger.LogWarning("KillSwitch on: {cmd} {args}", cmd, args);
                 process.Kill(true);
-            };
+            }
 
             using (stoppingToken.Register(killSwitch))
             {
-                _logger.LogInformation($"Started({started}), wait to exit({waitForExit}): command: '{cmd} {args}'");
+                _logger.LogInformation("Started({started}), wait to exit({waitForExit}): command: '{cmd} {args}'",
+                    started, waitForExit, cmd, args);
 
                 process.BeginOutputReadLine();
 
@@ -67,22 +67,22 @@ namespace logcat_monitor.helpers
 
         public string ConnectToAdbDevice(string adb, string deviceIp, CancellationToken stoppingToken)
         {
-            _logger.LogInformation($"ConnectToAdbDevice: {deviceIp}");
+            _logger.LogInformation("ConnectToAdbDevice: {deviceIp}", deviceIp);
 
             var result = new List<string>();
 
-            Action<string> action = delegate (string line)
+            void action(string line)
             {
                 result.Add(line);
 
-            };
+            }
 
             RunCommand(adb, $"connect {deviceIp}", stoppingToken, action, true);
 
             return string.Join("", result).Trim();
         }
 
-        public List<string> GetAdbDevices(string adb, CancellationToken stoppingToken, Action<Process> onProcessCreated = null)
+        public List<string> GetAdbDevices(string adb, CancellationToken stoppingToken)
         {
             _logger.LogInformation("GetAdbDevices");
 
@@ -102,14 +102,14 @@ namespace logcat_monitor.helpers
             return result;
         }
 
-        public void MonitorAdbDeviceLogcat(string adb, string deviceAddr, CancellationToken stoppingToken, Action<string> cb)
+        public void MonitorAdbDeviceLogcat(string adb, string deviceAddr, Action<string> cb, CancellationToken stoppingToken)
         {
             _logger.LogInformation("GetAdbDeviceLogcat");
 
-            Action<string> action = delegate (string line)
+            void action(string line)
             {
                 cb?.Invoke(line);
-            };
+            }
 
             RunCommand(adb, $"-s {deviceAddr} logcat", stoppingToken, action, true);
         }

@@ -17,20 +17,17 @@ namespace logcat_monitor.services
     {
         private readonly Dictionary<string, Thread> logcatMonitoring = new Dictionary<string, Thread>();
 
-        private string ADB_BIN = "/usr/bin/adb";
+        private readonly string ADB_BIN = "/usr/bin/adb";
 
         private readonly ILogger<AdbService> _logger;
-
-        private readonly IEventDispatch _eventDispatch;
 
         private readonly ProcessHelper _procHelper;
 
         private readonly AdbConfig _config;
 
-        public AdbService(ILogger<AdbService> logger, IEventDispatch eventDispatch, IOptions<AdbConfig> config)
+        public AdbService(ILogger<AdbService> logger, IOptions<AdbConfig> config)
         {
             _logger = logger;
-            _eventDispatch = eventDispatch;
             _procHelper = new ProcessHelper(_logger);
 
             _config = config.Value;
@@ -60,7 +57,7 @@ namespace logcat_monitor.services
                     foreach (var device in _config.Devices)
                     {
                         var output = _procHelper.ConnectToAdbDevice(ADB_BIN, device, stoppingToken);
-                        _logger.LogInformation($"Connection state from {device}: {output}");
+                        _logger.LogInformation("Connection state from {device}: {output}", device, output);
                     }
                 }
                 else
@@ -92,11 +89,11 @@ namespace logcat_monitor.services
                                 Directory.CreateDirectory(logcatDir);
                             }
 
-                            monitorAdbDeviceLogcat(logcatDir, device, serial, stoppingToken);
+                            monitorAdbDeviceLogcat(logcatDir, device, stoppingToken);
                         }
                         else
                         {
-                            _logger.LogInformation($"{device} is already monitored ...");
+                            _logger.LogInformation("{device} is already monitored ...", device);
                         }
                     });
 
@@ -105,22 +102,22 @@ namespace logcat_monitor.services
             });
         }
 
-        private void monitorAdbDeviceLogcat(string logcatDir, string device, string serial, CancellationToken stoppingToken)
+        private void monitorAdbDeviceLogcat(string logcatDir, string device, CancellationToken stoppingToken)
         {
             Task.Run(() =>
             {
                 logcatMonitoring.Add(device, Thread.CurrentThread);
 
-                Action<string> logcat = delegate (string line)
+                void logcat(string line)
                 {
                     File.AppendAllText($"{logcatDir}/{DateTime.Now.ToString("yyyy-MM-dd")}.log", line + Environment.NewLine);
                     GC.Collect();
-                };
+                }
 
                 _procHelper.ClearAdbLogcat(ADB_BIN, device, stoppingToken);
-                _procHelper.MonitorAdbDeviceLogcat(ADB_BIN, device, stoppingToken, logcat);
+                _procHelper.MonitorAdbDeviceLogcat(ADB_BIN, device, logcat, stoppingToken);
 
-                _logger.LogWarning($"Logcat session finished for ... {device}");
+                _logger.LogWarning("Logcat session finished for ... {device}", device);
 
                 logcatMonitoring.Remove(device);
             }, stoppingToken);
