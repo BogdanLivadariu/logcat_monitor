@@ -98,8 +98,8 @@ namespace logcat_monitor.services
                     });
 
                     await Task.Delay(5000);
-                };
-            });
+                }
+            }, stoppingToken);
         }
 
         private void monitorAdbDeviceLogcat(string logcatDir, string device, CancellationToken stoppingToken)
@@ -110,8 +110,11 @@ namespace logcat_monitor.services
 
                 void logcat(string line)
                 {
-                    File.AppendAllText($"{logcatDir}/{DateTime.Now.ToString("yyyy-MM-dd")}.log", line + Environment.NewLine);
-                    GC.Collect();
+                    var destinationLog = $"{logcatDir}/{DateTime.Now.ToString("yyyy-MM-dd")}.log";
+
+                    using var writer = new StreamWriter(destinationLog, append: true);
+
+                    writer.WriteLine(line);
                 }
 
                 _procHelper.ClearAdbLogcat(ADB_BIN, device, stoppingToken);

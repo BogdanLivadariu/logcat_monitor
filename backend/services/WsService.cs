@@ -15,20 +15,18 @@ namespace logcat_monitor.services
     {
         private readonly ILogger<WebSocketService> _logger;
         private readonly WebSocketServer _wsServer;
-        private readonly WebSocketServerConfig _config;
 
         public WebSocketService(ILogger<WebSocketService> logger, IEventDispatch eventDispatch, IOptions<WebSocketServerConfig> config)
         {
-            _config = config.Value;
+            var wsConfig = config.Value;
 
-            var wsPort = _config?.Port ?? 9091;
-            var wsIp = IPAddress.Parse(_config?.IP ?? IPAddress.Any.ToString());
+            var wsPort = wsConfig?.Port ?? 9091;
+            var wsIp = IPAddress.Parse(wsConfig?.IP ?? IPAddress.Any.ToString());
 
             _logger = logger;
             _wsServer = new WebSocketServer(wsIp,  wsPort);
 
             eventDispatch.onLogcatMessage += EventDispatch_onLogcatMessage;
-
         }
 
         private void EventDispatch_onLogcatMessage(object sender, DispatchEventArgs e)
