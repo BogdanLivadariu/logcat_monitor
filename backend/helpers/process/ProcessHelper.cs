@@ -54,10 +54,10 @@ namespace logcat_monitor.helpers
         public string GetCommandOutput(string cmd, string args, CancellationToken stoppingToken)
         {
             var sb = new StringBuilder();
-            Action<string> action = delegate (string line)
+            void action(string line)
             {
                 sb.Append(line);
-            };
+            }
 
             RunCommand(cmd, args, stoppingToken, action, true);
 
@@ -88,14 +88,14 @@ namespace logcat_monitor.helpers
 
             var result = new List<string>();
 
-            Action<string> action = delegate (string line)
+            void action(string line)
             {
                 if (!string.IsNullOrEmpty(line) && line.EndsWith("device", StringComparison.CurrentCultureIgnoreCase))
                 {
                     var deviceAddr = line.Split("\t")?[0];
                     result.Add(deviceAddr);
                 }
-            };
+            }
 
             RunCommand(adb, "devices", stoppingToken, action, true);
 
